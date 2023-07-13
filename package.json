@@ -1,9 +1,10 @@
 {
   "name": "solana-connect",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Standalone wallet UI for Solana dApps",
   "author": "ronanyeah",
   "license": "MIT",
+  "repository": "github:ronanyeah/solana-connect",
   "scripts": {
     "build": "webpack",
     "watch": "webpack serve --config webpack.test.js"

@@ -10,7 +10,7 @@ Standalone wallet UI for Solana dApps
 npm install solana-connect
 ```
 
-```
+```typescript
 import { SolanaConnect } from "solana-connect";
 
 const solConnect = new SolanaConnect();
