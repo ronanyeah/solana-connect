@@ -14,7 +14,7 @@ type alias Flags =
 
 
 type Msg
-    = WalletsCb (List WalletMeta)
+    = WalletCb WalletMeta
     | Connect String
     | ConnectCb (Maybe String)
     | Close

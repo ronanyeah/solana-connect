@@ -1,7 +1,7 @@
 const { Elm } = require("./Main.elm");
 require("./sheet.css");
 require("./misc.css");
-import { getWallets, Wallets } from "@wallet-standard/core";
+import { getWallets, Wallet, Wallets } from "@wallet-standard/core";
 import { Adapter } from "@solana/wallet-adapter-base";
 import {
   StandardWalletAdapter,
@@ -95,32 +95,32 @@ class SolanaConnect {
 
     const processWallet = (wl: Adapter) => {
       if (this.options.has(wl.name)) {
-        this.log("wallet repeat:", wl.name);
+        this.log("wallet duplicate:", wl.name);
         return;
       }
       this.options.set(wl.name, wl);
-      this.elmApp.ports.walletsCb.send([
-        {
-          name: wl.name,
-          icon: wl.icon,
-        },
-      ]);
+      this.elmApp.ports.walletCb.send({
+        name: wl.name,
+        icon: wl.icon,
+      });
+    };
+
+    const validateWallet = (wallet: Wallet) => {
+      if (isWalletAdapterCompatibleWallet(wallet)) {
+        processWallet(new StandardWalletAdapter({ wallet }));
+      } else {
+        this.log("wallet not compatible:", wallet.name);
+      }
     };
 
     this.wallets.get().forEach((newWallet) => {
-      if (isWalletAdapterCompatibleWallet(newWallet)) {
-        this.log("wallet read:", newWallet.name);
-        processWallet(new StandardWalletAdapter({ wallet: newWallet }));
-      }
+      this.log("wallet read:", newWallet.name);
+      validateWallet(newWallet);
     });
 
-    this.wallets.on("register", (adp) => {
-      if (isWalletAdapterCompatibleWallet(adp)) {
-        this.log("wallet registered:", adp.name);
-        processWallet(new StandardWalletAdapter({ wallet: adp }));
-      } else {
-        this.log("wallet not compatible:", adp.name);
-      }
+    this.wallets.on("register", (newWallet) => {
+      this.log("wallet registered:", newWallet.name);
+      validateWallet(newWallet);
     });
 
     if (config?.additionalAdapters) {
@@ -200,7 +200,7 @@ interface ElmApp {
 
 interface Ports {
   walletTimeout: PortIn;
-  walletsCb: PortIn;
+  walletCb: PortIn;
   disconnectIn: PortIn;
   connectCb: PortIn;
 

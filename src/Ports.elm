@@ -15,7 +15,7 @@ port connect : String -> Cmd msg
 port log : String -> Cmd msg
 
 
-port walletsCb : (List WalletMeta -> msg) -> Sub msg
+port walletCb : (WalletMeta -> msg) -> Sub msg
 
 
 port walletTimeout : (() -> msg) -> Sub msg

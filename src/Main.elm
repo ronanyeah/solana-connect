@@ -31,7 +31,7 @@ init _ =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Ports.walletsCb WalletsCb
+        [ Ports.walletCb WalletCb
         , Ports.connectCb ConnectCb
         , Ports.walletTimeout (always WalletTimeout)
         , Ports.disconnectIn (always DisconnectIn)

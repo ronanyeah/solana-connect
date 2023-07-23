@@ -9,12 +9,12 @@ import Types exposing (Model, Msg(..))
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        WalletsCb ws ->
+        WalletCb ws ->
             ( { model
                 | walletOptions =
                     model.walletOptions
-                        |> unwrap ws
-                            ((++) ws)
+                        |> unwrap [ ws ]
+                            ((::) ws)
                         |> List.sortBy .name
                         |> Just
               }
