@@ -86,6 +86,7 @@ view model =
             [ width fill
             , height fill
             , Background.color <| rgba255 0 0 0 0.2
+            , fadeIn
             ]
 
 
@@ -167,7 +168,7 @@ viewWallets model =
 
 
 pow msg elem =
-    Input.button []
+    Input.button [ hover ]
         { onPress = Just msg
         , label = elem
         }
@@ -208,6 +209,11 @@ hover =
 fade : Element.Attr a b
 fade =
     Element.alpha 0.6
+
+
+fadeIn : Attribute msg
+fadeIn =
+    style "animation" "fadeIn 0.5s"
 
 
 black =

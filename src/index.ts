@@ -2,7 +2,7 @@ const { Elm } = require("./Main.elm");
 require("./sheet.css");
 require("./misc.css");
 import { getWallets, Wallets } from "@wallet-standard/core";
-import { WalletAdapter } from "@solana/wallet-adapter-base";
+import { Adapter } from "@solana/wallet-adapter-base";
 import {
   StandardWalletAdapter,
   isWalletAdapterCompatibleWallet,
@@ -10,12 +10,12 @@ import {
 
 const MODAL_ID: string = "__sc__outer_modal";
 const ELM_APP_ID: string = "__sc__elm_app";
-const CONNECTION_EVENT: string = "__sc_ev_connect";
-const VISIBILITY_EVENT = "__sc_ev_vis";
+const CONNECTION_EVENT: string = "__sc__ev_connect";
+const VISIBILITY_EVENT: string = "__sc__ev_vis";
 
-interface SolanaConnectOptions {
+interface SolanaConnectConfig {
   debug?: boolean;
-  additionalAdapters?: WalletAdapter<string>[];
+  additionalAdapters?: Adapter[];
 }
 
 /* eslint-disable fp/no-this, fp/no-mutation, fp/no-class */
@@ -23,29 +23,33 @@ class SolanaConnect {
   isOpen: boolean;
   debug: boolean;
   activeWallet: string | null;
-  private options: Map<string, WalletAdapter<string>>;
-  private app: any;
+  private options: Map<string, Adapter>;
+  private elmApp: ElmApp;
   private wallets: Wallets;
 
-  constructor(opts?: SolanaConnectOptions) {
+  constructor(config?: SolanaConnectConfig) {
     this.wallets = getWallets();
     this.isOpen = false;
-    this.debug = opts?.debug || false;
+    this.debug = config?.debug || false;
     this.options = new Map();
     this.activeWallet = null;
     openModal();
-    this.app = Elm.Main.init({
+    this.elmApp = Elm.Main.init({
       node: document.getElementById(ELM_APP_ID),
       flags: {},
     });
 
-    this.app.ports.close.subscribe(() => {
+    this.elmApp.ports.close.subscribe(() => {
       this.showMenu(false);
     });
 
-    this.app.ports.connect.subscribe((tag: string) =>
+    this.elmApp.ports.connect.subscribe((tag: string) =>
       (async () => {
         const wallet = this.options.get(tag);
+
+        if (!wallet) {
+          throw new Error(`Wallet not found: ${tag}`);
+        }
 
         await wallet.connect();
 
@@ -53,19 +57,28 @@ class SolanaConnect {
           throw new Error(`Wallet not connected: ${wallet.name}`);
         }
 
+        wallet.on("disconnect", () => {
+          wallet.removeListener("disconnect");
+          this.log("disconnected");
+          this.activeWallet = null;
+          const event = new CustomEvent(CONNECTION_EVENT, { detail: null });
+          document.dispatchEvent(event);
+          this.elmApp.ports.disconnectIn.send(null);
+        });
+
         this.activeWallet = tag;
-        this.app.ports.connectCb.send(wallet.publicKey.toString());
+        this.elmApp.ports.connectCb.send(wallet.publicKey.toString());
 
         const event = new CustomEvent(CONNECTION_EVENT, { detail: wallet });
         document.dispatchEvent(event);
         this.showMenu(false);
       })().catch((e) => {
-        this.app.ports.connectCb.send(null);
+        this.elmApp.ports.connectCb.send(null);
         this.log(e);
       })
     );
 
-    this.app.ports.disconnect.subscribe((close: boolean) =>
+    this.elmApp.ports.disconnect.subscribe((close: boolean) =>
       (async () => {
         if (close) {
           this.showMenu(false);
@@ -75,22 +88,18 @@ class SolanaConnect {
           this.log("disconnecting", wallet.name);
           await wallet.disconnect();
         }
-        this.activeWallet = null;
-        const event = new CustomEvent(CONNECTION_EVENT, { detail: null });
-        document.dispatchEvent(event);
-        this.app.ports.disconnectIn.send(null);
       })().catch((e) => {
         this.log(e);
       })
     );
 
-    const processWallet = (wl: WalletAdapter<string>) => {
+    const processWallet = (wl: Adapter) => {
       if (this.options.has(wl.name)) {
         this.log("wallet repeat:", wl.name);
         return;
       }
       this.options.set(wl.name, wl);
-      this.app.ports.walletsCb.send([
+      this.elmApp.ports.walletsCb.send([
         {
           name: wl.name,
           icon: wl.icon,
@@ -110,34 +119,34 @@ class SolanaConnect {
         this.log("wallet registered:", adp.name);
         processWallet(new StandardWalletAdapter({ wallet: adp }));
       } else {
-        this.log("Wallet not compatible:", adp.name);
+        this.log("wallet not compatible:", adp.name);
       }
     });
 
-    if (opts?.additionalAdapters) {
-      opts.additionalAdapters.forEach(processWallet);
+    if (config?.additionalAdapters) {
+      config.additionalAdapters.forEach(processWallet);
     }
 
-    setTimeout(() => this.app.ports.walletTimeout.send(null), 2500);
+    setTimeout(() => this.elmApp.ports.walletTimeout.send(null), 2500);
   }
   openMenu() {
     this.showMenu(true);
   }
-  getWallet(): WalletAdapter<string> | null {
+  getWallet(): Adapter | null {
     if (!this.activeWallet) {
       return null;
     }
     const w = this.options.get(this.activeWallet);
     return w || null;
   }
-  onWalletChange(fnx: (_: WalletAdapter<string> | null) => void) {
+  onWalletChange(callback: (_: Adapter | null) => void) {
     document.addEventListener(CONNECTION_EVENT, (ev: any) => {
-      fnx(ev.detail);
+      callback(ev.detail);
     });
   }
-  onVisibilityChange(fnx: (_: boolean) => void) {
+  onVisibilityChange(callback: (_: boolean) => void) {
     document.addEventListener(VISIBILITY_EVENT, (ev: any) => {
-      fnx(ev.detail);
+      callback(ev.detail);
     });
   }
   private showMenu(val: boolean) {
@@ -185,4 +194,27 @@ function openModal() {
   document.body.appendChild(modal);
 }
 
-export { SolanaConnect };
+interface ElmApp {
+  ports: Ports;
+}
+
+interface Ports {
+  walletTimeout: PortIn;
+  walletsCb: PortIn;
+  disconnectIn: PortIn;
+  connectCb: PortIn;
+
+  close: PortOut;
+  connect: PortOut;
+  disconnect: PortOut;
+}
+
+interface PortOut {
+  subscribe: (_: (_: any) => void) => void;
+}
+
+interface PortIn {
+  send: (_: any) => void;
+}
+
+export { SolanaConnect, SolanaConnectConfig };

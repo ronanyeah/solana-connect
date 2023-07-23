@@ -7,11 +7,46 @@
     <title>Solana Connect - Test</title>
     <style>
       body {
-        background-color: red;
+        font-size: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #f3f3f3;
+        font-family: "Roboto";
+      }
+
+      .container {
+        text-align: center;
+        padding: 20px;
+        border: 1px solid;
+        border-radius: 4px;
+        background: #fff;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+      }
+
+      img {
+        height: 35px;
+        margin-right: 10px;
+      }
+
+      button {
+        cursor: pointer;
+        padding: 10px;
       }
     </style>
   </head>
   <body>
+    <div class="container">
+      <div class="row">
+        <img id="pic" />
+        <p id="txt"></p>
+      </div>
+      <button id="btn">Open Wallet Menu</button>
+    </div>
     <script src="/bundle.js"></script>
   </body>
 </html>

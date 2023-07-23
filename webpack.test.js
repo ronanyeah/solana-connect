@@ -1,6 +1,8 @@
 const { resolve } = require("path");
 const webpack = require("webpack");
 
+const assetFolder = resolve("./test");
+
 module.exports = (env) => {
   const devMode = Boolean(env.WEBPACK_SERVE);
 
@@ -21,6 +23,7 @@ module.exports = (env) => {
     mode: devMode ? "development" : "production",
     entry: "./test/index.ts",
     output: {
+      path: assetFolder,
       filename: "bundle.js",
     },
     stats: devMode ? "errors-warnings" : "normal",
@@ -31,7 +34,7 @@ module.exports = (env) => {
       port: 8000,
       hot: "only",
       static: {
-        directory: resolve("./test"),
+        directory: assetFolder,
       },
     },
     module: {

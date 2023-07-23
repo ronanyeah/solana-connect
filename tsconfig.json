@@ -3,9 +3,10 @@
     "target": "es6",
     "moduleResolution": "node",
     "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
     "strict": true,
     "declaration": true,
     "outDir": "./dist"
   },
-  "include": ["src/index.ts"]
+  "include": ["src/index.ts", "test/index.ts"]
 }
