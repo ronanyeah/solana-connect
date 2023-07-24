@@ -1,12 +1,25 @@
 import { SolanaConnect } from "../src";
 
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { WalletConnectWalletAdapter } from "@solana/wallet-adapter-walletconnect";
+
 const BTN = document.getElementById("btn")!;
 const TXT = document.getElementById("txt")!;
 const PIC = document.getElementById("pic")! as HTMLImageElement;
 
 reset();
 
-const solConnect = new SolanaConnect({ debug: true });
+const solConnect = new SolanaConnect({
+  debug: true,
+  additionalAdapters: [
+    new WalletConnectWalletAdapter({
+      network: WalletAdapterNetwork.Mainnet,
+      options: {
+        projectId: "foo",
+      },
+    }),
+  ],
+});
 
 BTN.onclick = () => solConnect.openMenu();
 
