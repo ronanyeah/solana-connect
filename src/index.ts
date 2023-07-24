@@ -33,7 +33,7 @@ class SolanaConnect {
     this.debug = config?.debug || false;
     this.options = new Map();
     this.activeWallet = null;
-    openModal();
+    createModal();
     this.elmApp = Elm.Main.init({
       node: document.getElementById(ELM_APP_ID),
       flags: {},
@@ -171,7 +171,7 @@ class SolanaConnect {
 }
 /* eslint-enable fp/no-this, fp/no-mutation, fp/no-class */
 
-function openModal() {
+function createModal() {
   /* eslint-disable fp/no-mutation */
   const modal = document.createElement("div");
   modal.id = MODAL_ID;

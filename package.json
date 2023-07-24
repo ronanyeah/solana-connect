@@ -1,6 +1,6 @@
 {
   "name": "solana-connect",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "Standalone wallet UI for Solana dApps",
   "author": "ronanyeah",
   "license": "MIT",
