@@ -14,18 +14,19 @@ npm install solana-connect
 
 ```typescript
 import { SolanaConnect } from "solana-connect";
+import { Adapter } from "@solana/wallet-adapter-base";
 
 const solConnect = new SolanaConnect();
 
 solConnect.openMenu();
 
-solConnect.onWalletChange((adapter) =>
+solConnect.onWalletChange((adapter: Adapter | null) =>
   adapter
     ? console.log("connected:", adapter.name, adapter.publicKey.toString())
     : console.log("disconnected")
 );
 
-solConnect.onVisibilityChange((isOpen) => {
+solConnect.onVisibilityChange((isOpen: boolean) => {
   console.log("menu visible:", isOpen);
 });
 ```
