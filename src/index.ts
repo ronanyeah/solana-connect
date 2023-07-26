@@ -1,6 +1,7 @@
 const { Elm } = require("./Main.elm");
 require("./sheet.css");
 require("./misc.css");
+import { ElmApp } from "./ports";
 import { getWallets, Wallet, Wallets } from "@wallet-standard/core";
 import { Adapter } from "@solana/wallet-adapter-base";
 import {
@@ -192,29 +193,6 @@ function createModal() {
   modal.appendChild(inner);
 
   document.body.appendChild(modal);
-}
-
-interface ElmApp {
-  ports: Ports;
-}
-
-interface Ports {
-  walletTimeout: PortIn;
-  walletCb: PortIn;
-  disconnectIn: PortIn;
-  connectCb: PortIn;
-
-  close: PortOut;
-  connect: PortOut;
-  disconnect: PortOut;
-}
-
-interface PortOut {
-  subscribe: (_: (_: any) => void) => void;
-}
-
-interface PortIn {
-  send: (_: any) => void;
 }
 
 export { SolanaConnect, SolanaConnectConfig };
