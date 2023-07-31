@@ -1,6 +1,6 @@
 const { Elm } = require("./Main.elm");
-require("./sheet.css");
-require("./misc.css");
+const appCss = require("./misc.css");
+
 import { ElmApp } from "./ports";
 import { getWallets, Wallet, Wallets } from "@wallet-standard/core";
 import { Adapter } from "@solana/wallet-adapter-base";
@@ -9,6 +9,7 @@ import {
   isWalletAdapterCompatibleWallet,
 } from "@solana/wallet-standard-wallet-adapter-base";
 
+const SHADOW_NODE: string = "solana-connect-modal";
 const MODAL_ID: string = "__sc__outer_modal";
 const ELM_APP_ID: string = "__sc__elm_app";
 const CONNECTION_EVENT: string = "__sc__ev_connect";
@@ -26,6 +27,7 @@ class SolanaConnect {
   activeWallet: string | null;
   private options: Map<string, Adapter>;
   private elmApp: ElmApp;
+  private root: AppModal;
   private wallets: Wallets;
 
   constructor(config?: SolanaConnectConfig) {
@@ -34,9 +36,10 @@ class SolanaConnect {
     this.debug = config?.debug || false;
     this.options = new Map();
     this.activeWallet = null;
-    createModal();
+    const elem = createModal();
+    this.root = elem;
     this.elmApp = Elm.Main.init({
-      node: document.getElementById(ELM_APP_ID),
+      node: elem.shadowRoot?.querySelector("#" + ELM_APP_ID)!,
       flags: {},
     });
 
@@ -151,7 +154,9 @@ class SolanaConnect {
     });
   }
   private showMenu(val: boolean) {
-    const modal = document.getElementById(MODAL_ID);
+    const modal: HTMLElement = this.root.shadowRoot?.querySelector(
+      "#" + MODAL_ID
+    )!;
 
     if (modal) {
       modal.style.display = val ? "block" : "none";
@@ -172,27 +177,48 @@ class SolanaConnect {
 }
 /* eslint-enable fp/no-this, fp/no-mutation, fp/no-class */
 
-function createModal() {
-  /* eslint-disable fp/no-mutation */
-  const modal = document.createElement("div");
-  modal.id = MODAL_ID;
-  modal.style.position = "fixed";
-  modal.style.top = "0";
-  modal.style.left = "0";
-  modal.style.width = "100%";
-  modal.style.height = "100%";
-  modal.style.zIndex = "1000";
-  modal.style.display = "none";
+function createModal(): AppModal {
+  if (customElements.get(SHADOW_NODE)) {
+    throw Error("Solana Connect already instantiated!");
+  }
+  customElements.define(SHADOW_NODE, AppModal);
 
-  const inner = document.createElement("div");
-  inner.id = ELM_APP_ID;
-  inner.style.width = "100%";
-  inner.style.height = "100%";
-  /* eslint-enable fp/no-mutation */
-
-  modal.appendChild(inner);
+  const modal = document.createElement(SHADOW_NODE);
 
   document.body.appendChild(modal);
+
+  return modal;
 }
+
+/* eslint-disable fp/no-this, fp/no-mutation, fp/no-class */
+class AppModal extends HTMLElement {
+  constructor() {
+    super();
+    const shadowRoot = this.attachShadow({ mode: "open" });
+
+    const modal = document.createElement("div");
+    modal.id = MODAL_ID;
+    modal.style.position = "fixed";
+    modal.style.top = "0";
+    modal.style.left = "0";
+    modal.style.width = "100%";
+    modal.style.height = "100%";
+    modal.style.zIndex = "1000";
+    modal.style.display = "none";
+
+    const inner = document.createElement("div");
+    inner.id = ELM_APP_ID;
+    inner.style.width = "100%";
+    inner.style.height = "100%";
+    modal.appendChild(inner);
+
+    const style = document.createElement("style");
+    style.textContent = appCss;
+    shadowRoot.appendChild(style);
+
+    shadowRoot.appendChild(modal);
+  }
+}
+/* eslint-enable fp/no-this, fp/no-mutation, fp/no-class */
 
 export { SolanaConnect, SolanaConnectConfig };

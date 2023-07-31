@@ -80,7 +80,6 @@ view model =
                     , backgroundColor = Nothing
                     , shadow = Nothing
                     }
-                , Element.noStaticStyleSheet
                 ]
             }
             [ width fill
