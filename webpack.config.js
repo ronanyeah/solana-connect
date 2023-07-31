@@ -1,4 +1,7 @@
 const webpack = require("webpack");
+const { resolve } = require("path");
+
+const demoFolder = resolve("./demo");
 
 module.exports = (env) => {
   const devMode = Boolean(env.WEBPACK_SERVE);
@@ -12,22 +15,65 @@ module.exports = (env) => {
     },
   };
 
+  const buildOutput = (() => {
+    switch (env.target) {
+      case "unpkg": {
+        return {
+          filename: "index.umd.js",
+          library: {
+            name: "SolanaConnect",
+            type: "umd",
+            export: ["SolanaConnect"],
+          },
+        };
+      }
+      case "module": {
+        return {
+          filename: "index.js",
+          library: {
+            type: "module",
+          },
+        };
+      }
+      case "demo": {
+        return {
+          path: demoFolder,
+          filename: "bundle.js",
+        };
+      }
+      default: {
+        throw Error("no target");
+      }
+    }
+  })();
+
   const elmLoader = devMode
     ? [{ loader: "elm-reloader" }, loaderConfig]
     : [loaderConfig];
 
   return {
     mode: devMode ? "development" : "production",
-    entry: "./src/index.ts",
-    output: {
-      filename: "index.js",
-      library: {
-        type: "module",
-      },
-    },
-    experiments: {
-      outputModule: true,
-    },
+    entry:
+      env.target === "demo"
+        ? resolve(demoFolder, "index.ts")
+        : "./src/index.ts",
+    output: buildOutput,
+    devServer:
+      env.target === "demo" && devMode
+        ? {
+            port: 8000,
+            hot: "only",
+            static: {
+              directory: demoFolder,
+            },
+          }
+        : undefined,
+    experiments:
+      env.target === "module"
+        ? {
+            outputModule: true,
+          }
+        : undefined,
     stats: devMode ? "errors-warnings" : "normal",
     infrastructureLogging: {
       level: "warn",

@@ -6,11 +6,14 @@
   "license": "MIT",
   "repository": "github:ronanyeah/solana-connect",
   "scripts": {
-    "build": "rm -r dist && webpack",
-    "demo:watch": "webpack serve --config webpack.test.js",
-    "demo:build": "webpack --config webpack.test.js",
+    "build": "rm -r dist && npm run module:build && npm run unpkg:build",
+    "module:build": "webpack --env target=module",
+    "unpkg:build": "webpack --env target=unpkg",
+    "demo:watch": "webpack serve --env target=demo",
+    "demo:build": "webpack --env target=demo",
     "docs": "typedoc src/index.ts"
   },
+  "unpkg": "dist/index.umd.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
