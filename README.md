@@ -30,6 +30,21 @@ solConnect.onVisibilityChange((isOpen: boolean) => {
   console.log("menu visible:", isOpen);
 });
 ```
+or use with [unpkg](https://www.unpkg.com/):
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://www.unpkg.com/solana-connect"></script>
+  </head>
+  <body>
+    <script>
+      const solConnect = new window.SolanaConnect();
+      solConnect.openMenu();
+    </script>
+  </body>
+</html>
+```
 
 ###  __Adding more adapters:__
 By default, only wallets that support the [Wallet Standard](https://github.com/wallet-standard/wallet-standard) will appear, but additional options can be provided.
