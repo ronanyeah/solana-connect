@@ -73,20 +73,13 @@ view model =
                 ]
                     |> column [ spacing 40 ]
             )
-    , [ text "About"
-            |> el [ Border.width 1, paddingXY 10 5, hover ]
-      , text "Settings"
-            |> el [ Border.width 1, paddingXY 10 5, hover ]
-      ]
-        |> row [ spacing 20, centerX ]
-        |> when False
     , [ text "About Solana Connect"
             |> el [ Font.size 15, Font.underline ]
       , icon Icons.open_in_new 17
       ]
-        |> row [ spacing 5, hover ]
+        |> row [ spacing 5 ]
         |> viewLink "https://github.com/ronanyeah/solana-connect/"
-        |> el [ alignRight ]
+        |> el [ alignRight, alignBottom ]
     ]
         |> column
             [ Background.color black
@@ -136,7 +129,6 @@ viewWallets model =
                     , text "here"
                         |> el
                             [ Font.underline
-                            , hover
                             ]
                         -- "https://solana.com/ecosystem/explore?categories=wallet"
                         |> viewLink "https://docs.solana.com/wallet-guide"
@@ -146,9 +138,6 @@ viewWallets model =
 
                 else
                     ws
-                        --++ ws
-                        --++ ws
-                        --++ ws
                         |> List.map
                             (\w ->
                                 [ [ image
@@ -173,8 +162,6 @@ viewWallets model =
                                             |> whenAttr (model.connectInProgress /= Nothing && model.connectInProgress /= Just w.name)
                                         , Font.bold
                                             |> whenAttr (model.connectInProgress == Just w.name)
-                                        , spaceEvenly
-                                        , alignLeft
                                         ]
                                     |> (if model.connectInProgress == Nothing then
                                             click (Connect w.name)
@@ -304,7 +291,7 @@ monospace =
 
 viewLink : String -> Element msg -> Element msg
 viewLink url elem =
-    newTabLink []
+    newTabLink [ hover ]
         { url = url
         , label = elem
         }
