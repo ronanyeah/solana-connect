@@ -5,7 +5,6 @@ type alias Model =
     { walletOptions : Maybe (List WalletMeta)
     , connectInProgress : Maybe String
     , wallet : Maybe Wallet
-    , walletTimeout : Bool
     }
 
 
@@ -21,6 +20,7 @@ type Msg
     | Disconnect Bool
     | DisconnectIn
     | WalletTimeout
+    | Copy String
 
 
 type alias WalletMeta =

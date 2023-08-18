@@ -10,6 +10,9 @@ port close : () -> Cmd msg
 port connect : String -> Cmd msg
 
 
+port copy : String -> Cmd msg
+
+
 port log : String -> Cmd msg
 
 

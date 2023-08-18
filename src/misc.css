@@ -16,6 +16,18 @@
   }
 }
 
+:host {
+  --hover-opacity: 0.6;
+}
+
+.sc_hover_fade:hover {
+  opacity: var(--hover-opacity);
+}
+
+.sc_fade {
+  opacity: var(--hover-opacity);
+}
+
 ::-webkit-scrollbar {
   width: 10px;
 }

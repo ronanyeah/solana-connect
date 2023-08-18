@@ -47,6 +47,14 @@ class SolanaConnect {
       this.showMenu(false);
     });
 
+    this.elmApp.ports.log.subscribe((txt) => {
+      this.log(txt);
+    });
+
+    this.elmApp.ports.copy.subscribe(async (txt) => {
+      await navigator.clipboard.writeText(txt);
+    });
+
     this.elmApp.ports.connect.subscribe((tag: string) =>
       (async () => {
         const wallet = this.options.get(tag);

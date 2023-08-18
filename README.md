@@ -1,4 +1,4 @@
-# solana-connect
+# Solana Connect
 Standalone wallet UI for Solana dApps
 
 [DEMO](https://solana-connect-demo.netlify.app/) | [DOCUMENTATION](https://solana-connect-docs.netlify.app/)

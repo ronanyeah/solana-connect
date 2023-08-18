@@ -92,7 +92,15 @@ module.exports = (env) => {
         },
         {
           test: /\.css$/,
-          type: "asset/source",
+          use: [
+            {
+              loader: "css-loader",
+              options: {
+                exportType: "string",
+                esModule: false,
+              },
+            },
+          ],
         },
       ],
     },

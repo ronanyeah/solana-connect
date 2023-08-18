@@ -22,7 +22,6 @@ init _ =
     ( { walletOptions = Nothing
       , connectInProgress = Nothing
       , wallet = Nothing
-      , walletTimeout = False
       }
     , Ports.log "start"
     )

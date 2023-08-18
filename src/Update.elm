@@ -22,7 +22,16 @@ update msg model =
             )
 
         WalletTimeout ->
-            ( { model | walletTimeout = True }, Cmd.none )
+            ( { model
+                | walletOptions =
+                    if model.walletOptions == Nothing then
+                        Just []
+
+                    else
+                        model.walletOptions
+              }
+            , Cmd.none
+            )
 
         Connect ws ->
             ( { model | connectInProgress = Just ws }, Ports.connect ws )
@@ -30,6 +39,11 @@ update msg model =
         Disconnect closeModal ->
             ( model
             , Ports.disconnect closeModal
+            )
+
+        Copy txt ->
+            ( model
+            , Ports.copy txt
             )
 
         DisconnectIn ->

@@ -5,9 +5,11 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import Helpers.View exposing (..)
 import Html exposing (Html)
+import Html.Attributes
 import Img
+import Material.Icons as Icons
+import Material.Icons.Types exposing (Icon)
 import Maybe.Extra exposing (unwrap)
 import Types exposing (..)
 
@@ -16,45 +18,75 @@ view : Model -> Html Msg
 view model =
     [ [ [ Img.solana 25
         , text "Solana Connect"
-            |> el [ Font.bold, Font.size 25 ]
+            |> el
+                [ Font.bold
+                , Font.size 25
+                , sansSerif
+                ]
         ]
             |> row [ spacing 10 ]
-      , text "X"
-            |> el [ Font.bold, Font.size 25 ]
-            |> pow Close
+      , icon Icons.close 30
+            |> el [ title "Close" ]
+            |> click Close
       ]
         |> row [ spaceEvenly, width fill ]
     , model.wallet
         |> unwrap
             (viewWallets model)
             (\wl ->
-                [ [ "Connected"
+                [ [ "Wallet Connected:"
                         |> text
-                        |> el [ Font.bold, Font.size 24, Font.italic ]
+                        |> el
+                            [ Font.bold
+                            , Font.size 22
+                            ]
                   , String.left 12 wl.address
                         |> (\addr ->
-                                newTabLink [ hover ]
-                                    { url = "https://solscan.io/account/" ++ wl.address ++ "?cluster=devnet"
-                                    , label =
-                                        [ image [ width <| px 30 ]
-                                            { src = wl.meta.icon
-                                            , description = wl.meta.name
-                                            }
-                                        , text (addr ++ "...")
-                                            |> el [ Font.underline ]
+                                [ [ image
+                                        [ height <| px 30
+                                        , width <| px 30
                                         ]
-                                            |> row [ spacing 10 ]
-                                    }
+                                        { src = wl.meta.icon
+                                        , description = wl.meta.name
+                                        }
+                                  , text (addr ++ "...")
+                                        |> el [ Font.underline ]
+                                  ]
+                                    |> row
+                                        [ spacing 10
+                                        , hover
+                                        , width shrink
+                                        ]
+                                    |> viewLink ("https://solscan.io/account/" ++ wl.address)
+                                , icon Icons.content_copy 22
+                                    |> el [ title "Copy" ]
+                                    |> click (Copy wl.address)
+                                ]
+                                    |> row [ spacing 15 ]
                            )
                   ]
                     |> column [ spacing 10 ]
-                , [ btn "Change Wallet" (Disconnect False)
-                  , btn "Disconnect" (Disconnect True)
+                , [ btn white "Change Wallet" (Disconnect False)
+                  , btn red "Disconnect" (Disconnect True)
                   ]
-                    |> wrappedRow [ width fill, spaceEvenly ]
+                    |> wrappedRow [ spacing 20 ]
                 ]
-                    |> column [ spacing 30, width fill ]
+                    |> column [ spacing 40 ]
             )
+    , [ text "About"
+            |> el [ Border.width 1, paddingXY 10 5, hover ]
+      , text "Settings"
+            |> el [ Border.width 1, paddingXY 10 5, hover ]
+      ]
+        |> row [ spacing 20, centerX ]
+        |> when False
+    , [ text "About Solana Connect"
+            |> el [ Font.size 15, Font.underline ]
+      , icon Icons.open_in_new 17
+      ]
+        |> row [ spacing 5, hover ]
+        |> viewLink "https://github.com/ronanyeah/solana-connect/"
+        |> el [ alignRight ]
     ]
         |> column
             [ Background.color black
@@ -84,108 +116,107 @@ view model =
             }
             [ width fill
             , height fill
+            , monospace
             , Background.color <| rgba255 0 0 0 0.2
             , fadeIn
             ]
 
 
+viewWallets : Model -> Element Msg
 viewWallets model =
     model.walletOptions
         |> unwrap
-            (if model.walletTimeout then
-                [ text "No Solana Wallets have been detected. "
-                , text "You can learn more about installing one "
-                , newTabLink [ Font.underline, hover ]
-                    { url =
-                        "https://docs.solana.com/wallet-guide"
-                    , label = text "here"
-                    }
-                , text "."
-                ]
-                    |> paragraph [ Font.center ]
-
-             else
-                spinner 20
-                    |> el [ centerX ]
+            (spinner 20
+                |> el [ centerX ]
             )
             (\ws ->
                 if List.isEmpty ws then
-                    [ "No Solana Wallets have been detected. "
-                        |> text
-                    , "You can learn more about installing one "
-                        |> text
-                    , newTabLink []
-                        { url = "https://solana.com/ecosystem/explore?categories=wallet"
-                        , label =
-                            "here"
-                                |> text
-                                |> el [ Font.bold, Font.underline ]
-                        }
+                    [ text "No Solana wallets have been detected. "
+                    , text "You can learn more about installing one "
+                    , text "here"
+                        |> el
+                            [ Font.underline
+                            , hover
+                            ]
+                        -- "https://solana.com/ecosystem/explore?categories=wallet"
+                        |> viewLink "https://docs.solana.com/wallet-guide"
                     , text "."
                     ]
                         |> paragraph [ Font.center ]
 
                 else
                     ws
+                        --++ ws
+                        --++ ws
+                        --++ ws
                         |> List.map
                             (\w ->
-                                Input.button
-                                    [ hover
-                                        |> whenAttr (model.connectInProgress == Nothing)
-                                    , fade
-                                        |> whenAttr (model.connectInProgress /= Nothing && model.connectInProgress /= Just w.name)
-                                    , Font.bold
-                                        |> whenAttr (model.connectInProgress == Just w.name)
-                                    , width fill
-                                    ]
-                                    { onPress =
-                                        if model.connectInProgress == Nothing then
-                                            Just <| Connect w.name
+                                [ [ image
+                                        [ height <| px 20
+                                        , width <| px 20
+                                        ]
+                                        { src = w.icon
+                                        , description = w.name
+                                        }
+                                  , text w.name
+                                  ]
+                                    |> row [ spacing 10 ]
+                                , spinner 20
+                                    |> el [ centerY ]
+                                    |> when (model.connectInProgress == Just w.name)
+                                ]
+                                    |> row
+                                        [ spacing 10
+                                        , hover
+                                            |> whenAttr (model.connectInProgress == Nothing)
+                                        , fade
+                                            |> whenAttr (model.connectInProgress /= Nothing && model.connectInProgress /= Just w.name)
+                                        , Font.bold
+                                            |> whenAttr (model.connectInProgress == Just w.name)
+                                        , spaceEvenly
+                                        , alignLeft
+                                        ]
+                                    |> (if model.connectInProgress == Nothing then
+                                            click (Connect w.name)
 
                                         else
-                                            Nothing
-                                    , label =
-                                        [ [ image [ height <| px 20 ] { src = w.icon, description = "" }
-                                          , text w.name
-                                          ]
-                                            |> row [ spacing 10 ]
-                                        , spinner 20
-                                            |> el [ centerY ]
-                                            |> when (model.connectInProgress == Just w.name)
-                                        ]
-                                            |> row [ spacing 10 ]
-                                    }
+                                            identity
+                                       )
                             )
                         |> column
                             [ spacing 20
-                            , centerX
-                            , width fill
                             , height fill
-                            , scrollbarY
+
+                            --, heightMax 300
+                            --, scrollbarY
                             ]
+             --|> scrollable [ height <| px 250 ]
             )
 
 
-pow msg elem =
+click : msg -> Element msg -> Element msg
+click msg elem =
     Input.button [ hover ]
         { onPress = Just msg
         , label = elem
         }
 
 
-btn elem msg =
+btn : Color -> String -> msg -> Element msg
+btn col txt msg =
     Input.button
         [ padding 10
         , Border.width 1
-        , Background.color white
+        , Background.color col
         , Border.rounded 20
         , Font.color black
         , paddingXY 17 8
         , hover
         , Font.size 15
+        , width shrink
         ]
         { onPress = Just msg
-        , label = text elem
+        , label = text txt
         }
 
 
@@ -197,17 +228,22 @@ spin =
 spinner : Int -> Element msg
 spinner n =
     Img.notch n
-        |> el [ spin, style "fill" "white" ]
+        |> el
+            [ spin
+            , style "fill" "white"
+            ]
 
 
 hover : Attribute msg
 hover =
-    Element.mouseOver [ fade ]
+    Html.Attributes.class "sc_hover_fade"
+        |> htmlAttribute
 
 
-fade : Element.Attr a b
+fade : Attribute msg
 fade =
-    Element.alpha 0.6
+    Html.Attributes.class "sc_fade"
+        |> htmlAttribute
 
 
 fadeIn : Attribute msg
@@ -215,9 +251,87 @@ fadeIn =
     style "animation" "fadeIn 0.5s"
 
 
+black : Color
 black =
     rgb255 0 0 0
 
 
+white : Color
 white =
     rgb255 255 255 255
+
+
+red : Color
+red =
+    rgb255 255 70 60
+
+
+
+--paddingXY x y =
+--paddingWith { top = y, bottom = y, left = x, right = x }
+
+
+style : String -> String -> Attribute msg
+style k v =
+    Html.Attributes.style k v
+        |> htmlAttribute
+
+
+title : String -> Attribute msg
+title v =
+    Html.Attributes.title v
+        |> htmlAttribute
+
+
+when : Bool -> Element msg -> Element msg
+when cond elem =
+    if cond then
+        elem
+
+    else
+        none
+
+
+sansSerif : Attribute msg
+sansSerif =
+    Font.family [ Font.sansSerif ]
+
+
+monospace : Attribute msg
+monospace =
+    Font.family [ Font.monospace ]
+
+
+viewLink : String -> Element msg -> Element msg
+viewLink url elem =
+    newTabLink []
+        { url = url
+        , label = elem
+        }
+
+
+icon : Icon msg -> Int -> Element msg
+icon ic n =
+    ic n Material.Icons.Types.Inherit
+        |> html
+        |> el []
+
+
+whenAttr : Bool -> Attribute msg -> Attribute msg
+whenAttr bool =
+    if bool then
+        identity
+
+    else
+        Element.below Element.none
+            |> always
+
+
+cappedWidth : Int -> Attribute msg
+cappedWidth n =
+    Element.fill |> Element.maximum n |> Element.width
+
+
+cappedHeight : Int -> Attribute msg
+cappedHeight n =
+    Element.fill |> Element.maximum n |> Element.height
