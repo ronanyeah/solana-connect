@@ -29,6 +29,8 @@ solConnect.onWalletChange((adapter: Adapter | null) =>
 solConnect.onVisibilityChange((isOpen: boolean) => {
   console.log("menu visible:", isOpen);
 });
+
+const wallet: Adapter | null = solConnect.getWallet();
 ```
 or use with [unpkg](https://www.unpkg.com/):
 ```html
