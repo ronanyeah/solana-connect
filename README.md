@@ -1,7 +1,7 @@
 # Solana Connect
 Standalone wallet UI for Solana dApps
 
-[DEMO](https://solana-connect-demo.netlify.app/) | [DOCUMENTATION](https://solana-connect-docs.netlify.app/)
+[DEMO](https://solana-connect-demo.netlify.app/) | [DOCUMENTATION](https://solana-connect-docs.netlify.app/) | [npm](https://www.npmjs.com/package/solana-connect)
 
 ![wallet menu](assets/menu.png)
 
