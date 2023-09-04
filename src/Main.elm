@@ -18,10 +18,11 @@ main =
 
 
 init : Flags -> ( Model, Cmd Msg )
-init _ =
+init flags =
     ( { walletOptions = Nothing
       , connectInProgress = Nothing
       , wallet = Nothing
+      , isMobile = flags.screen.width < 500
       }
     , Ports.log "start"
     )

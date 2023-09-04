@@ -40,7 +40,12 @@ class SolanaConnect {
     this.root = elem;
     this.elmApp = Elm.Main.init({
       node: elem.shadowRoot?.querySelector("#" + ELM_APP_ID)!,
-      flags: {},
+      flags: {
+        screen: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
+      },
     });
 
     this.elmApp.ports.close.subscribe(() => {

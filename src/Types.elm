@@ -5,11 +5,8 @@ type alias Model =
     { walletOptions : Maybe (List WalletMeta)
     , connectInProgress : Maybe String
     , wallet : Maybe Wallet
+    , isMobile : Bool
     }
-
-
-type alias Flags =
-    {}
 
 
 type Msg
@@ -21,6 +18,17 @@ type Msg
     | DisconnectIn
     | WalletTimeout
     | Copy String
+
+
+type alias Flags =
+    { screen : Screen
+    }
+
+
+type alias Screen =
+    { width : Int
+    , height : Int
+    }
 
 
 type alias WalletMeta =

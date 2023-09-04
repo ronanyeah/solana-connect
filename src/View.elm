@@ -55,12 +55,12 @@ view model =
                                     |> row
                                         [ spacing 10
                                         , hover
-                                        , width shrink
                                         ]
                                     |> viewLink ("https://solscan.io/account/" ++ wl.address)
                                 , icon Icons.content_copy 22
                                     |> el [ title "Copy" ]
                                     |> click (Copy wl.address)
+                                    |> el [ mouseDown [ moveRight 3, moveDown 3 ] ]
                                 ]
                                     |> row [ spacing 15 ]
                            )
@@ -84,7 +84,7 @@ view model =
         |> column
             [ Background.color black
             , spacing 30
-            , padding 30
+            , padding (fork model.isMobile 20 30)
             , width fill
             , Border.width 2
             , Border.color <| rgb255 84 24 158
@@ -94,7 +94,7 @@ view model =
             ]
         |> el
             [ centerX
-            , padding 30
+            , padding (fork model.isMobile 15 30)
             , cappedWidth 500
             , cappedHeight 400
             ]
@@ -141,17 +141,19 @@ viewWallets model =
                         |> List.map
                             (\w ->
                                 [ [ image
-                                        [ height <| px 20
-                                        , width <| px 20
+                                        [ height <| px 25
+                                        , width <| px 25
+                                        , alignTop
                                         ]
                                         { src = w.icon
                                         , description = w.name
                                         }
-                                  , text w.name
+                                  , [ text w.name ]
+                                        |> paragraph []
                                   ]
-                                    |> row [ spacing 10 ]
+                                    |> row [ spacing 15, width fill ]
                                 , spinner 20
-                                    |> el [ centerY ]
+                                    |> el [ alignTop ]
                                     |> when (model.connectInProgress == Just w.name)
                                 ]
                                     |> row
@@ -200,7 +202,6 @@ btn col txt msg =
         , paddingXY 17 8
         , hover
         , Font.size 15
-        , width shrink
         ]
         { onPress = Just msg
         , label = text txt
@@ -312,6 +313,14 @@ whenAttr bool =
     else
         Element.below Element.none
             |> always
+
+
+fork bl a b =
+    if bl then
+        a
+
+    else
+        b
 
 
 cappedWidth : Int -> Attribute msg
