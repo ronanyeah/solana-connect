@@ -1,4 +1,7 @@
 import { SolanaConnect } from "../src";
+import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
+
+const solflareAdapter = new SolflareWalletAdapter();
 
 const BTN = document.getElementById("btn")!;
 const TXT = document.getElementById("txt")!;
@@ -6,14 +9,18 @@ const PIC = document.getElementById("pic")! as HTMLImageElement;
 
 reset();
 
-const solConnect = new SolanaConnect({ debug: true });
+const solConnect = new SolanaConnect({
+  debug: true,
+  additionalAdapters:
+    solflareAdapter.readyState === "Installed" ? [solflareAdapter] : [],
+});
 
 BTN.onclick = () => solConnect.openMenu();
 
 solConnect.onWalletChange((adapter) => {
   if (adapter && adapter.publicKey) {
     const key = adapter.publicKey.toString();
-    TXT.innerText = key.slice(0, 6) + "..." + key.slice(-6);
+    TXT.innerText = "Connected: " + key.slice(0, 3) + "..." + key.slice(-3);
     PIC.src = adapter.icon;
   } else {
     reset();
