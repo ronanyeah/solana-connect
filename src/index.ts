@@ -3,24 +3,52 @@ const appCss = require("./misc.css");
 
 import { ElmApp } from "./ports";
 import { getWallets, Wallet, Wallets } from "@wallet-standard/core";
-import { Adapter } from "@solana/wallet-adapter-base";
 import {
-  StandardWalletAdapter,
-  isWalletAdapterCompatibleWallet,
-} from "@solana/wallet-standard-wallet-adapter-base";
+  Adapter,
+  isWalletAdapterCompatibleStandardWallet,
+} from "@solana/wallet-adapter-base";
+import { StandardWalletAdapter } from "@solana/wallet-standard-wallet-adapter-base";
 
-const SHADOW_NODE: string = "solana-connect-modal";
-const MODAL_ID: string = "__sc__outer_modal";
-const ELM_APP_ID: string = "__sc__elm_app";
-const CONNECTION_EVENT: string = "__sc__ev_connect";
-const VISIBILITY_EVENT: string = "__sc__ev_vis";
+const SHADOW_NODE = "solana-connect-modal";
+const MODAL_ID = "__sc__outer_modal";
+const ELM_APP_ID = "__sc__elm_app";
+
+const CONNECTION_EVENT = "__sc__ev_connect";
+const VISIBILITY_EVENT = "__sc__ev_vis";
+
+interface EventMap {
+  [VISIBILITY_EVENT]: CustomEvent<boolean>;
+  [CONNECTION_EVENT]: CustomEvent<Adapter | null>;
+}
+
+class WalletEventTarget extends EventTarget {
+  on<K extends keyof EventMap>(
+    type: K,
+    listener: (ev: EventMap[K]) => void
+    //options?: boolean | AddEventListenerOptions
+  ): this {
+    super.addEventListener(
+      type,
+      listener as EventListener
+      //, options
+    );
+    return this;
+  }
+
+  emit<K extends keyof EventMap>(
+    type: K,
+    detail: EventMap[K] extends CustomEvent<infer T> ? T : never
+  ): boolean {
+    const event = new CustomEvent(type, { detail });
+    return super.dispatchEvent(event);
+  }
+}
 
 interface SolanaConnectConfig {
   debug?: boolean;
   additionalAdapters?: Adapter[];
 }
 
-/* eslint-disable fp/no-this, fp/no-mutation, fp/no-class */
 class SolanaConnect {
   isOpen: boolean;
   debug: boolean;
@@ -29,6 +57,7 @@ class SolanaConnect {
   private elmApp: ElmApp;
   private root: AppModal;
   private wallets: Wallets;
+  private eventTarget: WalletEventTarget;
 
   constructor(config?: SolanaConnectConfig) {
     this.wallets = getWallets();
@@ -36,6 +65,7 @@ class SolanaConnect {
     this.debug = config?.debug || false;
     this.options = new Map();
     this.activeWallet = null;
+    this.eventTarget = new WalletEventTarget();
     const elem = createModal();
     this.root = elem;
     this.elmApp = Elm.Main.init({
@@ -78,16 +108,14 @@ class SolanaConnect {
           wallet.removeListener("disconnect");
           this.log("disconnected");
           this.activeWallet = null;
-          const event = new CustomEvent(CONNECTION_EVENT, { detail: null });
-          document.dispatchEvent(event);
+          this.eventTarget.emit(CONNECTION_EVENT, null);
           this.elmApp.ports.disconnectIn.send(null);
         });
 
         this.activeWallet = tag;
         this.elmApp.ports.connectCb.send(wallet.publicKey.toString());
 
-        const event = new CustomEvent(CONNECTION_EVENT, { detail: wallet });
-        document.dispatchEvent(event);
+        this.eventTarget.emit(CONNECTION_EVENT, wallet);
         this.showMenu(false);
       })().catch((e) => {
         this.elmApp.ports.connectCb.send(null);
@@ -123,7 +151,7 @@ class SolanaConnect {
     };
 
     const validateWallet = (wallet: Wallet) => {
-      if (isWalletAdapterCompatibleWallet(wallet)) {
+      if (isWalletAdapterCompatibleStandardWallet(wallet)) {
         processWallet(new StandardWalletAdapter({ wallet }));
       } else {
         this.log("wallet not compatible:", wallet.name);
@@ -157,12 +185,12 @@ class SolanaConnect {
     return w || null;
   }
   onWalletChange(callback: (_: Adapter | null) => void) {
-    document.addEventListener(CONNECTION_EVENT, (ev: any) => {
+    this.eventTarget.on(CONNECTION_EVENT, (ev) => {
       callback(ev.detail);
     });
   }
   onVisibilityChange(callback: (_: boolean) => void) {
-    document.addEventListener(VISIBILITY_EVENT, (ev: any) => {
+    this.eventTarget.on(VISIBILITY_EVENT, (ev) => {
       callback(ev.detail);
     });
   }
@@ -177,18 +205,14 @@ class SolanaConnect {
 
     this.isOpen = val;
 
-    const event = new CustomEvent(VISIBILITY_EVENT, { detail: this.isOpen });
-
-    document.dispatchEvent(event);
+    this.eventTarget.emit(VISIBILITY_EVENT, this.isOpen);
   }
-  // eslint-disable-next-line fp/no-rest-parameters
   private log(...xs: any[]) {
     if (this.debug) {
       console.log(...xs);
     }
   }
 }
-/* eslint-enable fp/no-this, fp/no-mutation, fp/no-class */
 
 function createModal(): AppModal {
   if (customElements.get(SHADOW_NODE)) {
@@ -203,7 +227,6 @@ function createModal(): AppModal {
   return modal;
 }
 
-/* eslint-disable fp/no-this, fp/no-mutation, fp/no-class */
 class AppModal extends HTMLElement {
   constructor() {
     super();
@@ -232,6 +255,5 @@ class AppModal extends HTMLElement {
     shadowRoot.appendChild(modal);
   }
 }
-/* eslint-enable fp/no-this, fp/no-mutation, fp/no-class */
 
 export { SolanaConnect, SolanaConnectConfig };
